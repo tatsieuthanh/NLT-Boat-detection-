@@ -1,43 +1,39 @@
-from Crypto.Cipher import AES as PyAES
+from hashlib import md5
+from base64 import b64decode
+from base64 import b64encode
+
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad
-import os
-import base64
+import json
 
-class AES:
-    # Hàm để mã hóa
-    def encrypt_aes_cbc(self, key, plaintext):
-        # Tạo IV ngẫu nhiên
-        iv = os.urandom(16)
-        cipher = PyAES.new(key, PyAES.MODE_CBC, iv)
-        
-        # Đệm plaintext và mã hóa
-        ciphertext = cipher.encrypt(pad(plaintext.encode(), PyAES.block_size))
-        
-        # Trả về IV và ciphertext, mã hóa chúng để dễ dàng lưu trữ
-        return base64.b64encode(iv).decode('utf-8'), base64.b64encode(ciphertext).decode('utf-8')
+# Ensure the key is 16 bytes and the IV is also 16 bytes
+key = b"NLT@2024@09@Ver1" # 16 bytes
+iv =  b"IV4@#NLT@2024@09" # 16 bytes
 
-    # Hàm để giải mã
-    def decrypt_aes_cbc(self, key, iv, ciphertext):
-        iv = base64.b64decode(iv)
-        ciphertext = base64.b64decode(ciphertext)
-        
-        cipher = PyAES.new(key, PyAES.MODE_CBC, iv)
-        decrypted = unpad(cipher.decrypt(ciphertext), PyAES.block_size)
-        
-        return decrypted.decode('utf-8')
+class AESCipher:
+    def __init__(self):
+        self.key = key
+        self.iv = iv
 
-# Ví dụ sử dụng
+    def encrypt(self, data):
+        self.cipher = AES.new(self.key, AES.MODE_CBC, self.iv)
+        encrypted_data = self.cipher.encrypt(pad(data.encode('utf-8'), AES.block_size))
+        return b64encode(encrypted_data).decode('utf-8') 
+
+    def decrypt(self, data):
+        raw = b64decode(data)  # Decode from Base64
+        self.cipher = AES.new(self.key, AES.MODE_CBC, self.iv)
+        decrypted_data = unpad(self.cipher.decrypt(raw), AES.block_size)
+        return decrypted_data.decode('utf-8')
+
 if __name__ == "__main__":
-    key = b'Sixteen byte key'  # Khóa phải có độ dài 16, 24 hoặc 32 byte
-    plaintext = "Hello, World!"
+    cipher_instance = AESCipher()
     
-    aes_instance = AES()  # Tạo thể hiện của lớp AES
-
-    # Mã hóa
-    iv, ciphertext = aes_instance.encrypt_aes_cbc(key, plaintext)
-    print(f'IV: {iv}')
-    print(f'Ciphertext: {ciphertext}')
+    # Encrypt
+    encrypted = cipher_instance.encrypt("hello")
+    print(f'Encrypted: {encrypted}')
     
-    # Giải mã
-    decrypted_text = aes_instance.decrypt_aes_cbc(key, iv, ciphertext)
-    print(f'Decrypted: {decrypted_text}')
+    # Decrypt
+    decrypted = cipher_instance.decrypt(encrypted)
+    print(f'Decrypted: {decrypted}')
