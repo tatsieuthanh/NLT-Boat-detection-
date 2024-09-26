@@ -22,5 +22,15 @@ git config --global user.email "you@example.com"
 git config --list
 touch .gitignore
 
+git fetch URL
 git add .
 git commit -m "new commit"
+
+sudo apt install python3.12-venv
+source myenv/bin/activate
+python3 -m venv myenv
+source myenv/bin/activate
+deactivate
+
+
+
