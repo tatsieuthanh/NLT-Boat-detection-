@@ -1,4 +1,5 @@
 from Radar import Radar
+from srvcom import Server
 
 if __name__ == "__main__":
     radar = Radar()

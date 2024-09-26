@@ -1,6 +1,11 @@
 import json, time
+import requests
+from requests.auth import HTTPDigestAuth
+import os 
+from datetime import datetime
+import pytz
 
-class Cabinet:
+class Ship:
     def __init__(self):
         self.api_key = "B7BB08C0BA3AB3ABB3C0B719A635A7C7"
         self.data_type = "DATASHIP"
@@ -27,7 +32,7 @@ class Cabinet:
         self.user_id_current = "01"
         self.change_user = ""
 
-        self.dt_format = {
+        self.dt_format_push = {
             "APIKEY": self.api_key,
             "DataType": self.data_type,
             "StationID": self.station_id,
@@ -40,7 +45,7 @@ class Cabinet:
             "ImgDetect": self.img_detect,
             "ShipSpeed": self.ship_speed,
             "ShipLength": self.ship_length,
-            "ShipWidth": self.ship_width,
+            "ShipWidth": self.ship_width,            
             "ShipHeight": self.ship_height,
             "ShipWeight": self.ship_weight,
             "ShipType": self.ship_type,
@@ -53,3 +58,38 @@ class Cabinet:
             "UserIDCurent": self.user_id_current,
             "ChangeUser": self.change_user
         }
+
+        self.imgoverview=""
+        self.imglicenseplate=""
+        self.imgdetect=""
+
+        self.dt_format_push_image ={
+            "APIKEY": self.api_key,
+            "DataType": self.data_type,
+            "ID": self.id,
+            "Licenseplate": self.license_plate,
+            "Image": [
+                self.imgoverview,
+                self.imglicenseplate,
+                self.imgdetect
+                    ]
+        }
+
+    def image_overview(self,ip='192.168.1.234', usr='admin', pwd='namlong2020'):
+        url_get = f'http://{ip}/cgi-bin/snapshot.cgi?'
+        
+        # Gửi yêu cầu GET với xác thực
+        response = requests.get(url_get, auth=HTTPDigestAuth(usr, pwd))
+        
+        # Kiểm tra xem yêu cầu có thành công không
+        if response.status_code == 200:
+            # Lưu hình ảnh vào tệp
+            vn_tz = pytz.timezone('Asia/Ho_Chi_Minh')
+            time_vn = datetime.now(vn_tz).strftime('%Y%m%d_%H:%M:%S')
+            filename = f'overview_{time_vn}.jpg'
+            with open(filename,'wb') as f:  # Mở ở chế độ nhị phân
+                f.write(response.content)
+            return True
+        else:
+            print(f"Error: Unable to retrieve image. Status code: {response.status_code}")
+            return False
